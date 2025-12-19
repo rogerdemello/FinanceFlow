@@ -123,6 +123,7 @@ Complete rewrite with modern web UI, AI/ML features, and Indian market optimizat
 - ✅ Pre-commit hooks
 - ✅ CI/CD setup
 
+
 #### Technical
 - Python 3.9+ support
 - AIML for conversational AI
