@@ -1,0 +1,55 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.coverage
+htmlcov/
+
+# Database
+data/db.sqlite3
+data/*.db
+
+# Exports
+exports/
+*.csv
+
+# Environment
+.env
+.env.local
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node/Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.log
+
+# Temporary files
+*.log
+*.tmp
+nul
+summary.md
+
+# ML Models (optional - remove if you want to commit trained models)
+ml/*.pkl
+ml/*.joblib
+

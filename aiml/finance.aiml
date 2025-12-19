@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aiml version="2.0">
+  <category>
+    <pattern>HELLO</pattern>
+    <template>Hi! I'm your personal finance assistant. How can I help you take control of your finances today? Need help budgeting, saving, or managing debt?</template>
+  </category>
+
+  <category>
+    <pattern>CREATE MY BUDGET</pattern>
+    <template>ACTION:REQUEST_BUDGET</template>
+  </category>
+
+  <category>
+    <pattern>INCOME * EXPENSES *</pattern>
+    <template>ACTION:INCOME_EXPENSES</template>
+  </category>
+
+  <category>
+    <pattern>LOG EXPENSE *</pattern>
+    <template>ACTION:LOG_EXPENSE <star/></template>
+  </category>
+
+  <category>
+    <pattern>LOG EXPENSES *</pattern>
+    <template>ACTION:LOG_EXPENSES <star/></template>
+  </category>
+
+  <category>
+    <pattern>LOG *</pattern>
+    <template>ACTION:LOG_GENERIC <star/></template>
+  </category>
+
+  <category>
+    <pattern>ADD DEBT *</pattern>
+    <template>ACTION:ADD_DEBTS <star/></template>
+  </category>
+
+  <category>
+    <pattern>ADD DEBTS *</pattern>
+    <template>ACTION:ADD_DEBTS <star/></template>
+  </category>
+
+  <category>
+    <pattern>HOW MUCH DID I SPEND THIS MONTH</pattern>
+    <template>ACTION:SHOW_SUMMARY</template>
+  </category>
+
+  <category>
+    <pattern>HOW CAN I PAY OFF MY DEBT FASTER</pattern>
+    <template>ACTION:DEBT_PLAN</template>
+  </category>
+
+  <category>
+    <pattern>CREATE DEBT PLAN</pattern>
+    <template>ACTION:DEBT_PLAN_INSTRUCTIONS</template>
+  </category>
+
+  <category>
+    <pattern>HOW MUCH SHOULD I SAVE THIS MONTH</pattern>
+    <template>ACTION:SUGGEST_SAVINGS</template>
+  </category>
+
+  <category>
+    <pattern>HOW CAN I SAVE ON TAXES THIS YEAR</pattern>
+    <template>Consider maximizing retirement contributions (401k/IRA), claiming eligible deductions, and keeping organized records. Consult a tax professional for personalized advice.</template>
+  </category>
+
+  <category>
+    <pattern>THANK YOU</pattern>
+    <template>You’re welcome — glad to help. Ask me anything about budgets, savings, or debt.</template>
+  </category>
+  <category>
+    <pattern>HELP</pattern>
+    <template>I can help you:
+- Create a budget: say "Income 5000 Expenses 3000"
+- Log expenses: "Log expense 50 groceries" or "Log expenses 20 coffee; 30 lunch"
+- Manage debt: "Add debt CreditCard 1500 18 50" (balance, interest rate, minimum payment)
+- View summary: "How much did I spend this month"
+- Debt payoff: "How can I pay off my debt faster"
+- Export data: "Export my expenses"</template>
+  </category>
+
+  <category>
+    <pattern>WHAT CAN YOU DO</pattern>
+    <template><srai>HELP</srai></template>
+  </category>
+
+  <category>
+    <pattern>SHOW MY EXPENSES</pattern>
+    <template>ACTION:SHOW_SUMMARY</template>
+  </category>
+
+  <category>
+    <pattern>SHOW MY BUDGET</pattern>
+    <template>ACTION:SHOW_BUDGET</template>
+  </category>
+
+  <category>
+    <pattern>EXPORT MY EXPENSES</pattern>
+    <template>ACTION:EXPORT_EXPENSES</template>
+  </category>
+
+  <category>
+    <pattern>EXPORT MY DEBTS</pattern>
+    <template>ACTION:EXPORT_DEBTS</template>
+  </category>
+
+  <category>
+    <pattern>SET SAVINGS GOAL * BY *</pattern>
+    <template>ACTION:SET_GOAL <star index="1"/> <star index="2"/></template>
+  </category>
+
+  <category>
+    <pattern>SHOW MY GOALS</pattern>
+    <template>ACTION:SHOW_GOALS</template>
+  </category>
+
+  <category>
+    <pattern>BYE</pattern>
+    <template>Take care! Remember to stay on top of your finances. Come back anytime!</template>
+  </category>
+
+  <category>
+    <pattern>GOODBYE</pattern>
+    <template><srai>BYE</srai></template>
+  </category>
+</aiml>
