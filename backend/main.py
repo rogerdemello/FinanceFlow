@@ -1,4 +1,5 @@
 """FastAPI backend for Personal Finance Assistant with AI/ML features."""
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -20,6 +21,7 @@ sys.path.insert(0, str(ml_path))
 try:
     from expense_categorizer import ExpenseCategorizer
     from nlp_expense_parser import NLPExpenseParser
+
     ML_ENABLED = True
 except ImportError:
     ML_ENABLED = False
@@ -28,7 +30,7 @@ except ImportError:
 app = FastAPI(
     title="Personal Finance Assistant API - India Edition",
     description="AI-powered personal finance management 🇮🇳",
-    version="2.0.0"
+    version="2.0.0",
 )
 
 # CORS middleware for React frontend
@@ -80,10 +82,12 @@ class SavingsGoalCreate(BaseModel):
 
 class NLPExpenseCreate(BaseModel):
     """Natural language expense input for AI parsing"""
+
     text: str = Field(..., description="e.g., 'spent 500 on groceries yesterday'")
 
 
 # ===== Health & AI Status =====
+
 
 @app.get("/health")
 async def health_check():
@@ -92,7 +96,7 @@ async def health_check():
         "status": "healthy",
         "ml_enabled": ML_ENABLED,
         "currency": "INR",
-        "region": "India"
+        "region": "India",
     }
 
 
@@ -106,9 +110,9 @@ async def get_ai_status():
             "features": {
                 "smart_categorization": ML_ENABLED,
                 "nlp_expense_entry": ML_ENABLED,
-                "auto_suggestions": ML_ENABLED
-            }
-        }
+                "auto_suggestions": ML_ENABLED,
+            },
+        },
     }
     name: str = Field(min_length=1)
     amount: float = Field(gt=0)
@@ -170,28 +174,28 @@ async def get_expenses():
 async def create_expense_nlp(request: NLPExpenseCreate):
     """
     Add expense using natural language (AI-powered)
-    
+
     Example: "spent 500 on groceries yesterday"
     """
     if not ML_ENABLED:
         raise HTTPException(
             status_code=503,
-            detail="AI features not available. Please use the standard form."
+            detail="AI features not available. Please use the standard form.",
         )
-    
+
     try:
         # Parse natural language input
         parsed = nlp_parser.parse(request.text)
-        
+
         if not nlp_parser.validate(parsed):
             raise HTTPException(
                 status_code=400,
-                detail="Could not understand. Try: 'spent [amount] on [category]'"
+                detail="Could not understand. Try: 'spent [amount] on [category]'",
             )
-        
+
         # Log expense
-        entry = assistant.log_expense(parsed['amount'], parsed['category'])
-        
+        entry = assistant.log_expense(parsed["amount"], parsed["category"])
+
         return {
             "success": True,
             "data": {
@@ -199,15 +203,15 @@ async def create_expense_nlp(request: NLPExpenseCreate):
                 "category": entry.category,
                 "date": entry.date,
                 "auto_categorized": True,
-                "confidence": parsed.get('confidence', 0),
-                "merchant": parsed.get('merchant'),
+                "confidence": parsed.get("confidence", 0),
+                "merchant": parsed.get("merchant"),
             },
             "ai_insights": {
                 "parsed_text": request.text,
-                "confidence": parsed.get('confidence', 0),
-                "detected_category": parsed['category'],
-                "detected_merchant": parsed.get('merchant')
-            }
+                "confidence": parsed.get("confidence", 0),
+                "detected_category": parsed["category"],
+                "detected_merchant": parsed.get("merchant"),
+            },
         }
     except HTTPException:
         raise
@@ -219,22 +223,22 @@ async def create_expense_nlp(request: NLPExpenseCreate):
 async def suggest_category(description: str):
     """
     Get AI-powered category suggestion based on description
-    
+
     Example: /api/expenses/suggest-category?description=swiggy dinner
     """
     if not ML_ENABLED:
         raise HTTPException(status_code=503, detail="AI features not available")
-    
+
     try:
         category, confidence = expense_categorizer.predict(description)
-        
+
         return {
             "success": True,
             "data": {
                 "suggested_category": category,
                 "confidence": round(confidence, 2),
-                "description": f"{confidence:.0%} confident this is {category}"
-            }
+                "description": f"{confidence:.0%} confident this is {category}",
+            },
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -250,11 +254,11 @@ async def get_expense_summary():
 @app.delete("/api/expenses/reset")
 async def reset_expenses(before_date: Optional[str] = None):
     """Reset (delete) all expenses or expenses before a specific date.
-    
+
     Query params:
         before_date: Optional YYYY-MM-DD format. If provided, deletes expenses before this date.
                     If omitted, deletes all expenses.
-    
+
     Example:
         DELETE /api/expenses/reset  (delete all)
         DELETE /api/expenses/reset?before_date=2024-01-01  (delete before date)
@@ -264,7 +268,7 @@ async def reset_expenses(before_date: Optional[str] = None):
         return {
             "success": True,
             "data": result,
-            "message": f"Deleted {result['deleted_count']} expense(s). {result['remaining_count']} remaining."
+            "message": f"Deleted {result['deleted_count']} expense(s). {result['remaining_count']} remaining.",
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

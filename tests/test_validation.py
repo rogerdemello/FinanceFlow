@@ -1,4 +1,5 @@
 """Test error handling and validation."""
+
 import pytest
 from src.pfa.assistant import PersonalFinanceAssistant
 
@@ -57,7 +58,7 @@ def test_whitespace_trimming():
     assistant = PersonalFinanceAssistant()
     entry = assistant.log_expense(100, "  Food  ")
     assert entry.category == "Food"
-    
+
     result = assistant.manage_debt("  Card  ", 1000, 5, 50)
     assert "  Card  " not in assistant.debt
     assert "Card" in assistant.debt

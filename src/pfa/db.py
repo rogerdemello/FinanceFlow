@@ -1,4 +1,5 @@
 """Simple SQLite persistence helpers for Personal Finance Assistant."""
+
 from __future__ import annotations
 import sqlite3
 from typing import Optional
@@ -10,40 +11,49 @@ def init_db(db_path: str) -> None:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute('''
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         amount REAL NOT NULL,
         category TEXT NOT NULL,
         date TEXT NOT NULL
     )
-    ''')
+    """
+    )
 
-    cursor.execute('''
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS debts (
         name TEXT PRIMARY KEY,
         balance REAL,
         interest REAL,
         minimum REAL
     )
-    ''')
+    """
+    )
 
-    cursor.execute('''
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS savings_goals (
         name TEXT PRIMARY KEY,
         amount REAL,
         target_date TEXT
     )
-    ''')
+    """
+    )
 
-    cursor.execute('''
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS users (
         user_id TEXT PRIMARY KEY,
         display_name TEXT
     )
-    ''')
+    """
+    )
 
-    cursor.execute('''
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS budget (
         id INTEGER PRIMARY KEY,
         income REAL,
@@ -51,7 +61,8 @@ def init_db(db_path: str) -> None:
         recommended_savings REAL,
         updated_at TEXT
     )
-    ''')
+    """
+    )
 
     conn.commit()
     conn.close()

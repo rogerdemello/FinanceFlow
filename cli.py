@@ -5,6 +5,7 @@ Usage:
     python cli.py aiml-demo
     python cli.py reset-db
 """
+
 from pathlib import Path
 import argparse
 import subprocess
@@ -32,7 +33,7 @@ def reset_db():
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("command", choices=["demo", "aiml-demo", "reset-db"]) 
+    p.add_argument("command", choices=["demo", "aiml-demo", "reset-db"])
     args = p.parse_args()
 
     if args.command == "demo":

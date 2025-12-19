@@ -6,6 +6,7 @@ methods (budget creation, logging expenses, adding debts, and summaries).
 
 Dependencies: `aiml`, `textblob` (for a simple sentiment check).
 """
+
 from __future__ import annotations
 import os
 import re
@@ -14,14 +15,17 @@ from textblob import TextBlob
 
 from .assistant import PersonalFinanceAssistant
 
-AIML_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'aiml'))
+AIML_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "..", "aiml")
+)
 
 
 def create_kernel(load_path: str | None = None) -> aiml.Kernel:
     import time
+
     # Compatibility shim: older PyAIML uses time.clock which was removed
     # in Python 3.8+. Provide a fallback to perf_counter to avoid crashes.
-    if not hasattr(time, 'clock'):
+    if not hasattr(time, "clock"):
         time.clock = time.perf_counter
 
     kernel = aiml.Kernel()
@@ -30,7 +34,7 @@ def create_kernel(load_path: str | None = None) -> aiml.Kernel:
         return kernel
     # Load all .aiml files in the aiml directory
     for fname in os.listdir(load_path):
-        if fname.endswith('.aiml'):
+        if fname.endswith(".aiml"):
             path = os.path.join(load_path, fname)
             kernel.learn(path)
     return kernel
@@ -40,7 +44,9 @@ def _sentiment_warn(text: str) -> None:
     try:
         polarity = TextBlob(text).sentiment.polarity
         if polarity < -0.5:
-            print("[Assistant] I detect some stress in your message — if this is about money, I can help create a calmer plan.")
+            print(
+                "[Assistant] I detect some stress in your message — if this is about money, I can help create a calmer plan."
+            )
     except Exception:
         # sentiment analysis is optional; silently ignore errors
         pass
@@ -48,33 +54,33 @@ def _sentiment_warn(text: str) -> None:
 
 def _parse_amount(token: str) -> float | None:
     try:
-        return float(token.replace('$', '').replace(',', ''))
+        return float(token.replace("$", "").replace(",", ""))
     except Exception:
         return None
 
 
 def run_console():
     kernel = create_kernel()
-    assistant = PersonalFinanceAssistant(db_path='data/db.sqlite3')
-    
-    print('='*60)
-    print(' Personal Finance Assistant - Interactive Console')
-    print('='*60)
+    assistant = PersonalFinanceAssistant(db_path="data/db.sqlite3")
+
+    print("=" * 60)
+    print(" Personal Finance Assistant - Interactive Console")
+    print("=" * 60)
     print()
     print('Type "help" for commands or "quit" to exit.')
-    print('State is persisted to data/db.sqlite3')
+    print("State is persisted to data/db.sqlite3")
     print()
-    
+
     while True:
         try:
-            text = input('\n💰 > ')
+            text = input("\n💰 > ")
         except (EOFError, KeyboardInterrupt):
-            print('\n👋 Goodbye!')
+            print("\n👋 Goodbye!")
             break
         if not text:
             continue
-        if text.strip().lower() in ('quit', 'exit'):
-            print('👋 Goodbye!')
+        if text.strip().lower() in ("quit", "exit"):
+            print("👋 Goodbye!")
             break
 
         _sentiment_warn(text)
@@ -82,7 +88,7 @@ def run_console():
         low = text.strip().lower()
 
         # Budget creation: "Income 4000 Expenses 2500"
-        if low.startswith('income') and 'expenses' in low:
+        if low.startswith("income") and "expenses" in low:
             parts = re.findall(r"[-+]?[0-9]*\.?[0-9]+", text)
             if len(parts) >= 2:
                 income = _parse_amount(parts[0])
@@ -90,34 +96,38 @@ def run_console():
                 if income is not None and expenses is not None:
                     try:
                         out = assistant.create_budget(income, expenses)
-                        print('✅ Budget created:')
+                        print("✅ Budget created:")
                         print(f"   Income: ${out['income']:.2f}")
                         print(f"   Expenses: ${out['expenses']:.2f}")
-                        print(f"   Recommended savings: ${out['recommended_savings']:.2f}")
+                        print(
+                            f"   Recommended savings: ${out['recommended_savings']:.2f}"
+                        )
                         print(f"   Leftover: ${out['leftover']:.2f}")
                     except ValueError as e:
-                        print(f'❌ Error: {e}')
+                        print(f"❌ Error: {e}")
                     continue
-            print('❌ Could not parse. Try: Income 4000 Expenses 2500')
+            print("❌ Could not parse. Try: Income 4000 Expenses 2500")
             continue
 
         # Log expense
-        m = re.match(r'^(log(?: expense)?)\s+\$?([0-9,\.]+)\s+(.+)$', low, re.I)
+        m = re.match(r"^(log(?: expense)?)\s+\$?([0-9,\.]+)\s+(.+)$", low, re.I)
         if m:
             amount = _parse_amount(m.group(2))
             category = m.group(3).strip().title()
             if amount is not None:
                 try:
                     entry = assistant.log_expense(amount, category)
-                    print(f"✅ Logged: ${entry.amount:.2f} in {entry.category} on {entry.date}")
+                    print(
+                        f"✅ Logged: ${entry.amount:.2f} in {entry.category} on {entry.date}"
+                    )
                 except ValueError as e:
-                    print(f'❌ Error: {e}')
+                    print(f"❌ Error: {e}")
                 continue
-            print('❌ Could not parse amount.')
+            print("❌ Could not parse amount.")
             continue
 
         # Add a single debt
-        if low.startswith('add debt') or low.startswith('debt add'):
+        if low.startswith("add debt") or low.startswith("debt add"):
             tokens = text.split()
             if len(tokens) >= 5:
                 name = tokens[2]
@@ -127,132 +137,155 @@ def run_console():
                 if balance is not None and interest is not None:
                     try:
                         assistant.manage_debt(name, balance, interest, minimum)
-                        print(f"✅ Debt '{name}' recorded: ${balance:.2f} @ {interest}% (min ${minimum:.2f})")
+                        print(
+                            f"✅ Debt '{name}' recorded: ${balance:.2f} @ {interest}% (min ${minimum:.2f})"
+                        )
                     except ValueError as e:
-                        print(f'❌ Error: {e}')
+                        print(f"❌ Error: {e}")
                     continue
-            print('❌ Use: Add debt CreditCard 1500 18 50')
+            print("❌ Use: Add debt CreditCard 1500 18 50")
             continue
 
         # Show expense summary
-        if low in ('show summary', 'expense summary', 'how much did i spend this month', 'show expenses'):
+        if low in (
+            "show summary",
+            "expense summary",
+            "how much did i spend this month",
+            "show expenses",
+        ):
             s = assistant.expense_summary()
-            print('📊 Expense summary:')
+            print("📊 Expense summary:")
             print(f'   Total spent: ${s["total_spent"]:.2f}')
-            print('   By category:')
-            for k, v in s['by_category'].items():
-                print(f'     - {k}: ${v:.2f}')
+            print("   By category:")
+            for k, v in s["by_category"].items():
+                print(f"     - {k}: ${v:.2f}")
             continue
 
         # Show budget
-        if low in ('show budget', 'show my budget'):
+        if low in ("show budget", "show my budget"):
             if assistant.user_data:
-                print('💵 Current budget:')
+                print("💵 Current budget:")
                 print(f"   Income: ${assistant.user_data.get('income', 0):.2f}")
-                print(f"   Expenses: ${assistant.user_data.get('expenses_total', 0):.2f}")
-                print(f"   Recommended savings: ${assistant.user_data.get('recommended_savings', 0):.2f}")
+                print(
+                    f"   Expenses: ${assistant.user_data.get('expenses_total', 0):.2f}"
+                )
+                print(
+                    f"   Recommended savings: ${assistant.user_data.get('recommended_savings', 0):.2f}"
+                )
             else:
-                print('⚠️  No budget set. Create one with: Income <amount> Expenses <amount>')
+                print(
+                    "⚠️  No budget set. Create one with: Income <amount> Expenses <amount>"
+                )
             continue
 
         # Export
-        if low in ('export expenses', 'export my expenses'):
+        if low in ("export expenses", "export my expenses"):
             from .export import export_expenses_csv
+
             try:
-                export_expenses_csv(assistant, 'exports/expenses.csv')
-                print('✅ Exported expenses to exports/expenses.csv')
+                export_expenses_csv(assistant, "exports/expenses.csv")
+                print("✅ Exported expenses to exports/expenses.csv")
             except Exception as e:
-                print(f'❌ Export failed: {e}')
+                print(f"❌ Export failed: {e}")
             continue
 
-        if low in ('export debts', 'export my debts'):
+        if low in ("export debts", "export my debts"):
             from .export import export_debts_csv
+
             try:
-                export_debts_csv(assistant, 'exports/debts.csv')
-                print('✅ Exported debts to exports/debts.csv')
+                export_debts_csv(assistant, "exports/debts.csv")
+                print("✅ Exported debts to exports/debts.csv")
             except Exception as e:
-                print(f'❌ Export failed: {e}')
+                print(f"❌ Export failed: {e}")
             continue
 
         # Fallback to AIML
         response = kernel.respond(text)
         if response:
             # Handle ACTION: markers produced by AIML
-            if response.startswith('ACTION:'):
-                action = response.split(':', 1)[1].strip()
+            if response.startswith("ACTION:"):
+                action = response.split(":", 1)[1].strip()
                 from .parsers import parse_expense_segments, parse_debt_segments
-                
-                if action == 'SHOW_SUMMARY':
+
+                if action == "SHOW_SUMMARY":
                     s = assistant.expense_summary()
-                    print('📊 Expense summary:')
+                    print("📊 Expense summary:")
                     print(f'   Total spent: ${s["total_spent"]:.2f}')
-                    print('   By category:')
-                    for k, v in s['by_category'].items():
-                        print(f'     - {k}: ${v:.2f}')
+                    print("   By category:")
+                    for k, v in s["by_category"].items():
+                        print(f"     - {k}: ${v:.2f}")
                     continue
-                    
-                if action == 'SHOW_BUDGET':
+
+                if action == "SHOW_BUDGET":
                     if assistant.user_data:
-                        print('💵 Current budget:')
+                        print("💵 Current budget:")
                         print(f"   Income: ${assistant.user_data.get('income', 0):.2f}")
-                        print(f"   Expenses: ${assistant.user_data.get('expenses_total', 0):.2f}")
-                        print(f"   Recommended savings: ${assistant.user_data.get('recommended_savings', 0):.2f}")
+                        print(
+                            f"   Expenses: ${assistant.user_data.get('expenses_total', 0):.2f}"
+                        )
+                        print(
+                            f"   Recommended savings: ${assistant.user_data.get('recommended_savings', 0):.2f}"
+                        )
                     else:
-                        print('⚠️  No budget set.')
+                        print("⚠️  No budget set.")
                     continue
-                    
-                if action == 'SHOW_GOALS':
+
+                if action == "SHOW_GOALS":
                     goals = assistant.savings_progress()
                     if goals:
-                        print('🎯 Savings goals:')
+                        print("🎯 Savings goals:")
                         for g in goals:
-                            print(f'   {g}')
+                            print(f"   {g}")
                     else:
-                        print('⚠️  No savings goals set.')
+                        print("⚠️  No savings goals set.")
                     continue
-                    
-                if action == 'EXPORT_EXPENSES':
+
+                if action == "EXPORT_EXPENSES":
                     from .export import export_expenses_csv
+
                     try:
-                        export_expenses_csv(assistant, 'exports/expenses.csv')
-                        print('✅ Exported to exports/expenses.csv')
+                        export_expenses_csv(assistant, "exports/expenses.csv")
+                        print("✅ Exported to exports/expenses.csv")
                     except Exception as e:
-                        print(f'❌ Export failed: {e}')
+                        print(f"❌ Export failed: {e}")
                     continue
-                    
-                if action == 'EXPORT_DEBTS':
+
+                if action == "EXPORT_DEBTS":
                     from .export import export_debts_csv
+
                     try:
-                        export_debts_csv(assistant, 'exports/debts.csv')
-                        print('✅ Exported to exports/debts.csv')
+                        export_debts_csv(assistant, "exports/debts.csv")
+                        print("✅ Exported to exports/debts.csv")
                     except Exception as e:
-                        print(f'❌ Export failed: {e}')
+                        print(f"❌ Export failed: {e}")
                     continue
-                    
-                if action == 'DEBT_PLAN':
+
+                if action == "DEBT_PLAN":
                     plan = assistant.debt_payoff_plan()
-                    print('📋 Debt payoff plan (avalanche method):')
+                    print("📋 Debt payoff plan (avalanche method):")
                     for p in plan:
-                        print(f'   {p}')
+                        print(f"   {p}")
                     continue
-                    
-                if action == 'SUGGEST_SAVINGS':
-                    income = assistant.user_data.get('income')
+
+                if action == "SUGGEST_SAVINGS":
+                    income = assistant.user_data.get("income")
                     if income:
-                        rec = assistant.user_data.get('recommended_savings', 0)
-                        print(f'💰 Suggested savings: ${rec:.2f}')
+                        rec = assistant.user_data.get("recommended_savings", 0)
+                        print(f"💰 Suggested savings: ${rec:.2f}")
                     else:
-                        print('⚠️  Set your budget first: Income <amount> Expenses <amount>')
+                        print(
+                            "⚠️  Set your budget first: Income <amount> Expenses <amount>"
+                        )
                     continue
-                    
-                if action == 'REQUEST_BUDGET':
-                    print('💡 Create a budget: Income <amount> Expenses <amount>')
+
+                if action == "REQUEST_BUDGET":
+                    print("💡 Create a budget: Income <amount> Expenses <amount>")
                     continue
-                    
-                if action in ('LOG_EXPENSE', 'LOG_EXPENSES', 'LOG_GENERIC'):
+
+                if action in ("LOG_EXPENSE", "LOG_EXPENSES", "LOG_GENERIC"):
                     items = parse_expense_segments(text)
                     if not items:
-                        print('❌ Could not parse. Try: Log 200 groceries; 50 dining')
+                        print("❌ Could not parse. Try: Log 200 groceries; 50 dining")
                     else:
                         for amt, cat in items:
                             if amt is None:
@@ -260,15 +293,19 @@ def run_console():
                                 continue
                             try:
                                 entry = assistant.log_expense(amt, cat.title())
-                                print(f"✅ Logged: ${entry.amount:.2f} in {entry.category}")
+                                print(
+                                    f"✅ Logged: ${entry.amount:.2f} in {entry.category}"
+                                )
                             except ValueError as e:
-                                print(f'❌ Error: {e}')
+                                print(f"❌ Error: {e}")
                     continue
-                    
-                if action == 'ADD_DEBTS':
+
+                if action == "ADD_DEBTS":
                     debts = parse_debt_segments(text)
                     if not debts:
-                        print('❌ Use: Add debts CreditCard 1500 18 50; StudentLoan 10000 5 100')
+                        print(
+                            "❌ Use: Add debts CreditCard 1500 18 50; StudentLoan 10000 5 100"
+                        )
                     else:
                         for name, bal, ir, mn in debts:
                             if bal is None or ir is None:
@@ -276,12 +313,14 @@ def run_console():
                                 continue
                             try:
                                 assistant.manage_debt(name, bal, ir, mn or 0.0)
-                                print(f"✅ Debt '{name}': ${bal:.2f} @ {ir}% (min ${mn})")
+                                print(
+                                    f"✅ Debt '{name}': ${bal:.2f} @ {ir}% (min ${mn})"
+                                )
                             except ValueError as e:
-                                print(f'❌ Error: {e}')
+                                print(f"❌ Error: {e}")
                     continue
-                    
-                if action.startswith('SET_GOAL'):
+
+                if action.startswith("SET_GOAL"):
                     # Parse goal name and target date from action payload
                     parts = action.split(None, 2)
                     if len(parts) >= 3:
@@ -293,18 +332,20 @@ def run_console():
                             if nums:
                                 amount = float(nums[0])
                                 assistant.set_savings_goal(goal_name, amount, target)
-                                print(f"✅ Goal '{goal_name}' set: ${amount:.2f} by {target}")
+                                print(
+                                    f"✅ Goal '{goal_name}' set: ${amount:.2f} by {target}"
+                                )
                             else:
-                                print('❌ Could not parse goal amount')
+                                print("❌ Could not parse goal amount")
                         except ValueError as e:
-                            print(f'❌ Error: {e}')
+                            print(f"❌ Error: {e}")
                     continue
-                    
+
             # Otherwise print AIML response text
             print(response)
         else:
             print("❓ I didn't understand that. Type 'help' for commands.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_console()
